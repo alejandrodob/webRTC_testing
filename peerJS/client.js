@@ -1,4 +1,7 @@
-var createClient = function(host, port, id) {
+var ChatClient = function(session) {
+
+    var HOST = 'localhost';
+    var PORT = 5000;
 
     var _peer = null;
     var _connections = {};
@@ -20,9 +23,7 @@ var createClient = function(host, port, id) {
 
     var _listenToPeers = function() {
         _peer.on('connection', function(c) {
-            c.on('open', function() {
-                _addConnection(c);
-            });
+            c.on('open', _addConnection.bind(null, c));
             c.on('data', _handleData);
         });
     };
