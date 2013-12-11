@@ -14,9 +14,7 @@ var ChatClient = function(session) {
         var self = this;
         session.getActivePeers(function(err, activePeers) {
             if (err === null) {
-                activePeers.forEach(function(activePeer) {
-                    _connections[activePeer] = _peer.connect(activePeer);
-                });
+                _addConnectionsWith(activePeers);
                 if (typeof self.onconnect === 'function') {
                     self.onconnect(null, activePeers);
                 }
@@ -26,14 +24,25 @@ var ChatClient = function(session) {
                     self.onconnect(err, activePeers);
                 }
             }
-            
         });
     }
 
+    function _addConnectionsWith(activePeers) {
+        activePeers.forEach(function(activePeer) {
+            _connections[activePeer] = _peer.connect(activePeer);
+        });
+    }
+
+    function _send(data) {
+        for (var key in _connections) {
+            if (_connections.hasOwnProperty(key)) {
+                _connections[key].send(data);
+            }
+        }
+    }
+
     this.connect = _connect;
-
+    this.send = _send;
 };
-
-
 
 
