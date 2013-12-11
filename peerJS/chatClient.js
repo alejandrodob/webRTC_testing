@@ -13,12 +13,20 @@ var ChatClient = function(session) {
     function _connectToPeers() {
         var self = this;
         session.getActivePeers(function(err, activePeers) {
-            activePeers.forEach(function(activePeer) {
-                _connections[activePeer] = _peer.connect(activePeer);
-            });
-            if (typeof self.onconnect === 'function') {
-                self.onconnect(null, activePeers);
+            if (err === null) {
+                activePeers.forEach(function(activePeer) {
+                    _connections[activePeer] = _peer.connect(activePeer);
+                });
+                if (typeof self.onconnect === 'function') {
+                    self.onconnect(null, activePeers);
+                }
             }
+            else {
+                if (typeof self.onconnect === 'function') {
+                    self.onconnect(err, activePeers);
+                }
+            }
+            
         });
     }
 
