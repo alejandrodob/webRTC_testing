@@ -3,25 +3,28 @@ context = describe;
 describe("ChatClient instances", function() {
 
 
-    var mockConnection = { send: function(data) { return data; } };
+    function MockConnection(id) {
+        this.peer = id;
+        this.receivedData = null;
+        this.send = function(data) {
+            this.receivedData = data;
+        };
+    }
 
     var mockSession = {
         _activePeers: ['A', 'B', 'C'],
     };
 
     var MockPeer = function() {
-        var _callback;
         this.on = function(eventType, callback) {
-            if (eventType === 'data') {
-
-            }
-            _callback = callback;
-            setTimeout(callback, 0);
+            if (this._events.hasOwnProperty(eventType))
+                return this._events[eventType](callback);
         };
-        this.connect = function(peer) {
-            return mockConnection;
-        };
+        this.connect = function(peer) { };
     };
+    MockPeer.prototype._events = {
+        'open': function(callback) {setTimeout(callback, 0);},
+        };
 
 
     describe('connect() method', function() {
@@ -87,14 +90,46 @@ describe("ChatClient instances", function() {
                 expect(activePeers).toEqual([]);
             });
         });
-    });
 
-    xdescribe('onconnect()', function() {
+        it('calls onNewUserEnter() if a new user enters the chat succesfully', function() {
+            var client, done = false;
+            var err, newUser;
+            mockSession.getActivePeers = function(cb) {
+                setTimeout(cb.bind(null, 'error', []), 0);
+            };
+            MockPeer.prototype._events['connection'] = function(callback) {
+                setTimeout(callback, 0, new MockConnection('john doe'));
+            };
 
-        it('', function() {
-            client = new ChatClient(mockSession);
+
+            runs(function() {
+                client = new ChatClient(mockSession);
+                client.onconnect = function() { done = true; };
+                client.connect();
+                client.onNewUserEnter = function(_err, _newUser) {
+                    console.log("me llamaron soy onNewUser");
+                    err = _err;
+                    newUser = _newUser;
+                };
+            });
+
+            waitsFor(function() { return done; }, 100, 'onconnect to be called eventually.');
+
+            runs(function() {
+                expect(err).toBe(null);
+                expect(newUser).toEqual('john doe');
+            });
+        });
+
+        it('calls onUserLeave() if a connections with any user is closed', function() {
+
+        });
+
+        it('calls onmessage() if any message is received', function() {
+
         });
     });
+
 
     describe('send()', function() {
         var realUser = window.user;
@@ -110,30 +145,23 @@ describe("ChatClient instances", function() {
             window.Peer = realPeer;
         });
 
-        it('calls the method send() of each of its current connections with message as parameter', function() {
-            var client, done = false;
-            var message;
-            mockSession.getActivePeers = function(cb) {
-                setTimeout(cb.bind(null, null, ['A']), 0);
+        it('send the same data to all peers', function() {
+            var client;
+            var message = 'hola a todos';
+            var connections = {
+                'A': new MockConnection('A'),
+                'B': new MockConnection('B')
             };
-            spyOn(mockConnection, 'send');
 
-            runs(function() {
-                client = new ChatClient(mockSession);
-                client.onconnect = function() { done = true };
-                client.connect();
-                client.onmessage = function() {};
-            });
+            client = new ChatClient();
+            client._connections = connections;
+            client.send(message);
 
-            waitsFor(function() { return done; }, 100, 'onconnect to be called eventually.');
-
-            runs(function() {
-                client.send('hola a todos');
-                expect(mockConnection.send).toHaveBeenCalledWith('hola a todos');
-            });
+            expect(client._connections['A'].receivedData).toBe(message);
+            expect(client._connections['B'].receivedData).toBe(message);
         });
 
-        it('calls the method onmessage() with client id and message as parameters on success', function() {
+        xit('calls the method onmessage() with client id and message as parameters on success', function() {
             var client, done = false;
             var err, message, author;
             mockSession.getActivePeers = function(cb) {
