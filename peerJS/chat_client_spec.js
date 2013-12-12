@@ -89,7 +89,7 @@ describe("ChatClient instances", function() {
         });
     });
 
-    describe('onconnect()', function() {
+    xdescribe('onconnect()', function() {
 
         it('', function() {
             client = new ChatClient(mockSession);
@@ -122,6 +122,7 @@ describe("ChatClient instances", function() {
                 client = new ChatClient(mockSession);
                 client.onconnect = function() { done = true };
                 client.connect();
+                client.onmessage = function() {};
             });
 
             waitsFor(function() { return done; }, 100, 'onconnect to be called eventually.');
@@ -130,7 +131,35 @@ describe("ChatClient instances", function() {
                 client.send('hola a todos');
                 expect(mockConnection.send).toHaveBeenCalledWith('hola a todos');
             });
+        });
 
+        it('calls the method onmessage() with client id and message as parameters on success', function() {
+            var client, done = false;
+            var err, message, author;
+            mockSession.getActivePeers = function(cb) {
+                setTimeout(cb.bind(null, null, ['A']), 0);
+            };
+
+            runs(function() {
+                client = new ChatClient(mockSession);
+                client.onconnect = function() {};
+                client.connect();
+                client.onmessage = function(_err, _message) {
+                    err = _err;
+                    author = _message.author;
+                    message = _message.body;
+                    done = true
+                };
+                client.send('hola a todos');
+            });
+
+            waitsFor(function() { return done; }, 100, 'onmessage to be called eventually.');
+
+            runs(function() {
+                expect(err).toBe(null);
+                expect(author).toEqual(window.user.id);
+                expect(message).toEqual('hola a todos');
+            });
         });
     });
 

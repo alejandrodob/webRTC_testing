@@ -8,7 +8,9 @@ var ChatClient = function(session) {
     function _connect() {
         _peer = new Peer(window.user.id, { host: HOST, port: PORT });
         _peer.on('open', _connectToPeers.bind(this));
+        _peer.on('connection', _respondToConnectionRequest);
     }
+
 
     function _connectToPeers() {
         var self = this;
@@ -39,6 +41,7 @@ var ChatClient = function(session) {
                 _connections[key].send(data);
             }
         }
+        this.onmessage(null, { author: window.user.id, body: data });
     }
 
     this.connect = _connect;
