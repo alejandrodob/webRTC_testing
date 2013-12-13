@@ -9,7 +9,14 @@ describe("ChatClient instances", function() {
         this.send = function(data) {
             this.receivedData = data;
         };
+        this.on = function(eventType, callback) {
+            if (this._events.hasOwnProperty(eventType))
+                return this._events[eventType](callback);
+        };
     }
+    MockConnection.prototype._events = {
+                'close': function(callback) { setTimeout(callback, 0);},
+            };
 
     var mockSession = {
         _activePeers: ['A', 'B', 'C'],
@@ -20,7 +27,7 @@ describe("ChatClient instances", function() {
             if (this._events.hasOwnProperty(eventType))
                 return this._events[eventType](callback);
         };
-        this.connect = function(peer) { };
+        this.connect = function(peer) { return new MockConnection()};
     };
     MockPeer.prototype._events = {
         'open': function(callback) {setTimeout(callback, 0);},
@@ -124,37 +131,9 @@ describe("ChatClient instances", function() {
             expect(client._connections['B'].receivedData).toBe(message);
         });
 
-        xit('calls the method onmessage() with client id and message as parameters on success', function() {
-            var client, done = false;
-            var err, message, author;
-            mockSession.getActivePeers = function(cb) {
-                setTimeout(cb.bind(null, null, ['A']), 0);
-            };
-
-            runs(function() {
-                client = new ChatClient(mockSession);
-                client.onconnect = function() {};
-                client.connect();
-                client.onmessage = function(_err, _message) {
-                    err = _err;
-                    author = _message.author;
-                    message = _message.body;
-                    done = true;
-                };
-                client.send('hola a todos');
-            });
-
-            waitsFor(function() { return done; }, 100, 'onmessage to be called eventually.');
-
-            runs(function() {
-                expect(err).toBe(null);
-                expect(author).toEqual(window.user.id);
-                expect(message).toEqual('hola a todos');
-            });
-        });
     });
 
-    describe('the rest of callbacks', function() {
+    describe('after connection, callback', function() {
         var realUser = window.user;
         var realPeer = window.Peer;
 
@@ -178,16 +157,14 @@ describe("ChatClient instances", function() {
                 setTimeout(callback, 0, new MockConnection('john doe'));
             };
 
-
             runs(function() {
                 client = new ChatClient(mockSession);
                 client.onconnect = function() { done = true; };
-                client.connect();
                 client.onNewUserEnter = function(_err, _newUser) {
-                    console.log("me llamaron soy onNewUser");
                     err = _err;
                     newUser = _newUser;
                 };
+                client.connect();
             });
 
             waitsFor(function() { return done; }, 100, 'onconnect to be called eventually.');
@@ -198,7 +175,27 @@ describe("ChatClient instances", function() {
             });
         });
 
-        it('onUserLeave() is called if a connections with any user is closed', function() {
+        it('onUserLeave() is called if a connection with any user is closed', function() {
+            var client, connection, done = false;
+            var userLeaving;
+
+            runs(function() {
+                client = new ChatClient();
+                connection = new MockConnection('john doe');
+                client._prepareConnection(connection);
+                client._storeConnection(connection);
+                client.onUserLeaving = function(user) {
+                    userLeaving = user;
+                    done = true;
+                };
+            });
+            
+            waitsFor(function() { return done; }, 100, 'onUserLeaving to be called eventually.');
+
+            runs(function() {
+                expect(userLeaving).toEqual('john doe');
+                expect(client._connections['john doe']).toBe(undefined);
+            });
 
         });
 

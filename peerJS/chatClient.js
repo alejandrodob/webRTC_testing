@@ -13,14 +13,14 @@
     ChatClient.prototype.connect = function() {
         this._peer = new Peer(window.user.id, { host: HOST, port: PORT });
         this._peer.on('open', this._connectToPeers.bind(this));
-        this._respondToConnectionRequest();
+        this._respondToConnectionRequests();
     };
 
     ChatClient.prototype._connectToPeers = function() {
         var self = this;
         self._session.getActivePeers(function(err, activePeers) {
             if (err === null) {
-                self._addConnectionsWith(activePeers);
+                self._createConnectionsFor(activePeers);
                 if (typeof self.onconnect === 'function') {
                     self.onconnect(null, activePeers);
                 }
@@ -33,12 +33,19 @@
         });
     };
 
-    ChatClient.prototype._addConnectionsWith = function(activePeers) {
+    ChatClient.prototype._createConnectionsFor = function(activePeers) {
         var self = this;
         activePeers.forEach(function(activePeer) {
-            self._connections[activePeer] = self._peer.connect(activePeer);
+            var connection = self._peer.connect(activePeer);
+            self._prepareConnection(connection);
+            self._storeConnection(connection);
         });
     };
+
+    ChatClient.prototype._storeConnection = function(connection) {
+        var self = this;
+        self._connections[connection.peer] = connection;
+    }
 
     ChatClient.prototype.send = function(data) {
         for (var peer in this._connections) {
@@ -49,19 +56,31 @@
         //this.onmessage(null, { author: window.user.id, body: data });
     };
 
-    ChatClient.prototype._respondToConnectionRequest = function() {
+    ChatClient.prototype._respondToConnectionRequests = function() {
         var self = this;
         self._peer.on('connection', function(c) {
-            self._connections[c.peer] = c;
+            self._prepareConnection(c);
+            self._storeConnection(c);
             self.onNewUserEnter(null, c.peer);
         });
     };
 
     ChatClient.prototype._prepareConnection = function(connection) {
-        connection.on('open', function() {});
-        connection.on('data', function() { this.onmessage(); });
-        connection.on('close', function() { this.onUserLeaves(); });
+        var self = this;
+        //connection.on('open', function() {});
+        //connection.on('data', function() { this.onmessage(); });
+        connection.on('close', function() {
+            if (typeof self.onUserLeaving === 'function') {
+                self.onUserLeaving(connection.peer);
+            }
+            self._removeConnection(connection);
+        });
     };
+
+    ChatClient.prototype._removeConnection = function(connection) {
+        var self = this;
+        delete self._connections[connection.peer];
+    }
 
     global.ChatClient = ChatClient;
 }(this));
