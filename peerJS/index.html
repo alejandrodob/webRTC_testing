@@ -7,13 +7,19 @@
 </head>
 <body>
 
-
-  <p>Peer Id:</p><input type="text_input" name="textbox" id="peerIdBox">
-  <input type="button" value="Connect" id="connect">
-
-
+    <div>
+        <ul id="conversation"></ul>
+    </div>
+    <div>
+        <input type="text" id="message">
+        <button id="sendBtn">  Send Message  </button>
+    </div>
+    
 
   <script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>
-  <script src="client.js"></script>
+  <script src="chatController.js"></script>
+  <script src="chatModel.js"></script>
+  <script src="chatClient.js"></script>
+  <script src="init.js"></script>
 </body>
 </html>
