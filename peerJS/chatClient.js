@@ -68,7 +68,11 @@
     ChatClient.prototype._prepareConnection = function(connection) {
         var self = this;
         //connection.on('open', function() {});
-        //connection.on('data', function() { this.onmessage(); });
+        connection.on('data', function(data) {
+            if (typeof self.onmessage === 'function') {
+                self.onmessage(data);
+            }
+        });
         connection.on('close', function() {
             if (typeof self.onUserLeaving === 'function') {
                 self.onUserLeaving(connection.peer);

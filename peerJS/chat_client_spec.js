@@ -15,8 +15,9 @@ describe("ChatClient instances", function() {
         };
     }
     MockConnection.prototype._events = {
-                'close': function(callback) { setTimeout(callback, 0);},
-            };
+                'close': function(callback) { setTimeout(callback, 0); },
+                'data': function(callback) { setTimeout(callback, 0, 'new message'); }
+    };
 
     var mockSession = {
         _activePeers: ['A', 'B', 'C'],
@@ -196,11 +197,28 @@ describe("ChatClient instances", function() {
                 expect(userLeaving).toEqual('john doe');
                 expect(client._connections['john doe']).toBe(undefined);
             });
-
         });
 
         it('onmessage() is called if any message is received', function() {
+            var client, connection, done = false;
+            var message;
 
+            runs(function() {
+                client = new ChatClient();
+                connection = new MockConnection('john doe');
+                client._prepareConnection(connection);
+                client._storeConnection(connection);
+                client.onmessage = function(data) {
+                    message = data;
+                    done = true;
+                };
+            });
+            
+            waitsFor(function() { return done; }, 100, 'onconnect to be called eventually.');
+
+            runs(function() {
+                expect(message).toEqual('new message');
+            });
         });
     });
 
