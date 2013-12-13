@@ -91,43 +91,6 @@ describe("ChatClient instances", function() {
             });
         });
 
-        it('calls onNewUserEnter() if a new user enters the chat succesfully', function() {
-            var client, done = false;
-            var err, newUser;
-            mockSession.getActivePeers = function(cb) {
-                setTimeout(cb.bind(null, 'error', []), 0);
-            };
-            MockPeer.prototype._events['connection'] = function(callback) {
-                setTimeout(callback, 0, new MockConnection('john doe'));
-            };
-
-
-            runs(function() {
-                client = new ChatClient(mockSession);
-                client.onconnect = function() { done = true; };
-                client.connect();
-                client.onNewUserEnter = function(_err, _newUser) {
-                    console.log("me llamaron soy onNewUser");
-                    err = _err;
-                    newUser = _newUser;
-                };
-            });
-
-            waitsFor(function() { return done; }, 100, 'onconnect to be called eventually.');
-
-            runs(function() {
-                expect(err).toBe(null);
-                expect(newUser).toEqual('john doe');
-            });
-        });
-
-        it('calls onUserLeave() if a connections with any user is closed', function() {
-
-        });
-
-        it('calls onmessage() if any message is received', function() {
-
-        });
     });
 
 
@@ -176,7 +139,7 @@ describe("ChatClient instances", function() {
                     err = _err;
                     author = _message.author;
                     message = _message.body;
-                    done = true
+                    done = true;
                 };
                 client.send('hola a todos');
             });
@@ -188,6 +151,59 @@ describe("ChatClient instances", function() {
                 expect(author).toEqual(window.user.id);
                 expect(message).toEqual('hola a todos');
             });
+        });
+    });
+
+    describe('the rest of callbacks', function() {
+        var realUser = window.user;
+        var realPeer = window.Peer;
+
+        beforeEach(function() {
+            window.user = { id: 'yo' };
+            window.Peer = MockPeer;
+        });
+
+        afterEach(function() {
+            window.user = realUser;
+            window.Peer = realPeer;
+        });
+
+        it('onNewUserEnter() is called if a new user enters the chat succesfully', function() {
+            var client, done = false;
+            var err, newUser;
+            mockSession.getActivePeers = function(cb) {
+                setTimeout(cb.bind(null, 'error', []), 0);
+            };
+            MockPeer.prototype._events['connection'] = function(callback) {
+                setTimeout(callback, 0, new MockConnection('john doe'));
+            };
+
+
+            runs(function() {
+                client = new ChatClient(mockSession);
+                client.onconnect = function() { done = true; };
+                client.connect();
+                client.onNewUserEnter = function(_err, _newUser) {
+                    console.log("me llamaron soy onNewUser");
+                    err = _err;
+                    newUser = _newUser;
+                };
+            });
+
+            waitsFor(function() { return done; }, 100, 'onconnect to be called eventually.');
+
+            runs(function() {
+                expect(err).toBe(null);
+                expect(newUser).toEqual('john doe');
+            });
+        });
+
+        it('onUserLeave() is called if a connections with any user is closed', function() {
+
+        });
+
+        it('onmessage() is called if any message is received', function() {
+
         });
     });
 
