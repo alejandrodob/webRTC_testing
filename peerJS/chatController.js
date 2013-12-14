@@ -3,6 +3,7 @@ function ChatView(model, elements) {
     this._elements = elements;
 
     this.sendButtonClicked = new Event(this);
+    this.connectButtonClicked = new Event(this);
 
     var self = this;
 
@@ -14,6 +15,9 @@ function ChatView(model, elements) {
     // subscribe listeners to HTML controls
     this._elements.sendButton.click(function() {
         self.sendButtonClicked.notify();
+    });
+    this._elements.connectButton.click(function() {
+        self.connectButtonClicked.notify();
     });
 
 }
@@ -42,25 +46,56 @@ ChatView.prototype = {
  * The Controller. Controller responds to user actions and
  * invokes changes on the model.
  */
-function ChatController(model, view) {
+function ChatController(model, view, client) {
     this._model = model;
     this._view = view;
+    this._client = client;
 
     var self = this;
 
     //subscribe to view events
     this._view.sendButtonClicked.subscribe(function() {
-        self.addMessage();
+        self.addMessage(true);
     });
+    this._view.connectButtonClicked.subscribe(function() {
+        self._client.connect(self._view._elements.name.val());
+    });
+
+    //define client callbacks
+    this._client.onconnect = function(err, activePeers) {
+        if (!err) {
+            self.addUsers(activePeers);
+        }
+    };
+    this._client.onmessage = function(message) {
+        self.addMessage(false, message);
+    };
+    this._client.onUserEnter = function(err, userId) {
+        self.addUsers([userId]);
+    };
+    this._client.onUserLeaving = function(userId) {
+        self.removeUser(userId);
+    };
 
 }
 
 ChatController.prototype = {
-    addMessage : function() {
-        var message = this._view._elements.message.val();
-        if (message) {
-            this._model.addMessage(message);
+    addMessage : function(own, message) {
+        var _message = own ? this._view._elements.message.val() : message
+        //var message = this._view._elements.message.val();
+        if (_message) {
+            this._model.addMessage(_message);
+            if (own) this._client.send(_message);
+
         }
+    },
+
+    addUsers : function(users) {
+        console.log('addUsers on controller called')
+    },
+
+    removeUser : function(user) {
+        console.log('removeUser on controller called')
     }
 
 };

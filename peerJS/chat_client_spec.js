@@ -148,7 +148,7 @@ describe("ChatClient instances", function() {
             window.Peer = realPeer;
         });
 
-        it('onNewUserEnter() is called if a new user enters the chat succesfully', function() {
+        it('onUserEnter() is called if a new user enters the chat succesfully', function() {
             var client, done = false;
             var err, newUser;
             mockSession.getActivePeers = function(cb) {
@@ -161,7 +161,7 @@ describe("ChatClient instances", function() {
             runs(function() {
                 client = new ChatClient(mockSession);
                 client.onconnect = function() { done = true; };
-                client.onNewUserEnter = function(_err, _newUser) {
+                client.onUserEnter = function(_err, _newUser) {
                     err = _err;
                     newUser = _newUser;
                 };
