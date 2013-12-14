@@ -11,6 +11,9 @@ function ChatView(model, elements) {
     this._model.messageAdded.subscribe(function() {
         self.rebuildConversation();
     });
+    this._model.userAdded.subscribe(function() {
+        self.rebuildUsersList();
+    });
 
     // subscribe listeners to HTML controls
     this._elements.sendButton.click(function() {
@@ -25,6 +28,7 @@ function ChatView(model, elements) {
 ChatView.prototype = {
     show : function() {
         this.rebuildConversation();
+        this.rebuildUsersList();
     },
 
     rebuildConversation : function() {
@@ -36,7 +40,24 @@ ChatView.prototype = {
         messages = this._model.getConversation();
         for (message in messages) {
             if (messages.hasOwnProperty(message)) {
-                conversation.append($('<li>' + messages[message] + '</li>'));
+                var author = messages[message].author;
+                var body = messages[message].body;
+                conversation.append($('<li>' + author +": " + body + '</li>'));
+            }
+        }
+    },
+
+    rebuildUsersList : function() {
+        var onlineUsers, users, user;
+
+        onlineUsers = this._elements.onlineUsers;
+        onlineUsers.html('');
+
+        users = this._model.getUsers();
+        console.log(users.length)
+        for (user in users) {
+            if (users.hasOwnProperty(user)) {
+                onlineUsers.append($('<li>' + users[user] + '</li>'));
             }
         }
     }
@@ -63,7 +84,8 @@ function ChatController(model, view, client) {
 
     //define client callbacks
     this._client.onconnect = function(err, activePeers) {
-        if (!err) {
+        if (!err && activePeers.length > 0) {
+            console.log(self._model)
             self.addUsers(activePeers);
         }
     };
@@ -80,10 +102,11 @@ function ChatController(model, view, client) {
 }
 
 ChatController.prototype = {
+    //needs refactoring
     addMessage : function(own, message) {
-        var _message = own ? this._view._elements.message.val() : message
-        //var message = this._view._elements.message.val();
-        if (_message) {
+        var text = this._view._elements.message.val()
+        var _message = own ? this.wrapMessage(text) : message;
+        if (_message.body) {
             this._model.addMessage(_message);
             if (own) this._client.send(_message);
 
@@ -91,11 +114,18 @@ ChatController.prototype = {
     },
 
     addUsers : function(users) {
-        console.log('addUsers on controller called')
+        var self = this;
+        users.forEach(function(user) {
+            self._model.addUser(user);
+        });
     },
 
     removeUser : function(user) {
         console.log('removeUser on controller called')
+    },
+    //this will need to be re-written after user ID definition
+    wrapMessage : function(message) {
+        return { author : this._client._peer.id, body : message };
     }
 
 };

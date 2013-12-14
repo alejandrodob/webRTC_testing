@@ -1,9 +1,10 @@
 
-function ChatModel(client) {
-    this._client = client;
+function ChatModel() {
     this._messages = [];
+    this._users = [];
 
     this.messageAdded = new Event(this);
+    this.userAdded = new Event(this);
 
 }
 
@@ -17,9 +18,14 @@ ChatModel.prototype = {
         this.messageAdded.notify({ message : message });
     },
 
-    newParticipant : function(participant) {},
+    getUsers : function() {
+        return [].concat(this._users);
+    },
 
-    checkAuthor : function() {}
+    addUser : function(user) {
+        this._users.push(user);
+        this.userAdded.notify({ user : user });
+    }
 
 };
 

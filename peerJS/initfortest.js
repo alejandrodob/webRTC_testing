@@ -4,6 +4,7 @@ $(function () {
             'conversation' : $('#conversation'),
             'message' : $('#message'),
             'sendButton' : $('#sendBtn'),
+            'onlineUsers' : $('#onlineUsers'),
             'name' : $('#name'),
             'connectButton' : $('#connectBtn')
         });

@@ -2,6 +2,7 @@ $(function () {
     var model = new ChatModel();
     var view = new ChatView(model, {
             'conversation' : $('#conversation'),
+            'onlineUsers' : $('#onlineUsers'),
             'message' : $('#message'),
             'sendButton' : $('#sendBtn')
         });

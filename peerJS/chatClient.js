@@ -9,7 +9,7 @@
         this._peer = null;
         this._connections = {};
     };
-
+    //will need to be modified after USER ID definition
     ChatClient.prototype.connect = function(name) {
         this._peer = new Peer(name, { host: HOST, port: PORT });
         this._peer.on('open', this._connectToPeers.bind(this));
