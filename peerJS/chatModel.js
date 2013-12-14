@@ -4,7 +4,7 @@ function ChatModel() {
     this._users = [];
 
     this.messageAdded = new Event(this);
-    this.userAdded = new Event(this);
+    this.onlineUsersChanged = new Event(this);
 
 }
 
@@ -24,7 +24,16 @@ ChatModel.prototype = {
 
     addUser : function(user) {
         this._users.push(user);
-        this.userAdded.notify({ user : user });
+        this.onlineUsersChanged.notify({ user : user });
+    },
+
+    removeUser : function(user) {
+        var newUsers = [];
+        this._users.forEach(function(u) {
+            if (u !== user) newUsers.push(u);
+        });
+        this._users = newUsers;
+        this.onlineUsersChanged.notify({ user : user });
     }
 
 };

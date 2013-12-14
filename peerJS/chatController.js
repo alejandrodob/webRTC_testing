@@ -11,8 +11,8 @@ function ChatView(model, elements) {
     this._model.messageAdded.subscribe(function() {
         self.rebuildConversation();
     });
-    this._model.userAdded.subscribe(function() {
-        self.rebuildUsersList();
+    this._model.onlineUsersChanged.subscribe(function() {
+        self.rebuildOnlineUsers();
     });
 
     // subscribe listeners to HTML controls
@@ -28,7 +28,7 @@ function ChatView(model, elements) {
 ChatView.prototype = {
     show : function() {
         this.rebuildConversation();
-        this.rebuildUsersList();
+        this.rebuildOnlineUsers();
     },
 
     rebuildConversation : function() {
@@ -47,7 +47,7 @@ ChatView.prototype = {
         }
     },
 
-    rebuildUsersList : function() {
+    rebuildOnlineUsers : function() {
         var onlineUsers, users, user;
 
         onlineUsers = this._elements.onlineUsers;
@@ -78,6 +78,8 @@ function ChatController(model, view, client) {
     this._view.sendButtonClicked.subscribe(function() {
         self.addMessage(true);
     });
+
+    //only for testing GUI--to be removed after that is done
     this._view.connectButtonClicked.subscribe(function() {
         self._client.connect(self._view._elements.name.val());
     });
@@ -121,7 +123,8 @@ ChatController.prototype = {
     },
 
     removeUser : function(user) {
-        console.log('removeUser on controller called')
+        var self = this;
+        self._model.removeUser(user);
     },
     //this will need to be re-written after user ID definition
     wrapMessage : function(message) {
