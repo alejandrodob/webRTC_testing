@@ -28,10 +28,10 @@ describe("ChatClient instances", function() {
             if (this._events.hasOwnProperty(eventType))
                 return this._events[eventType](callback);
         };
-        this.connect = function(peer) { return new MockConnection()};
+        this.connect = function(peer) { return new MockConnection() };
     };
     MockPeer.prototype._events = {
-        'open': function(callback) {setTimeout(callback, 0);},
+        'open': function(callback) { setTimeout(callback, 0); },
         };
 
 

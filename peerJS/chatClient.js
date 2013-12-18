@@ -6,10 +6,11 @@
 
     var ChatClient = function(session) {
         this._session = session;
+        this._user_id = session.getOwnId();
         this._peer = null;
         this._connections = {};
     };
-    //will need to be modified after USER ID definition
+
     ChatClient.prototype.connect = function(name) {
         this._peer = new Peer(name, { host: HOST, port: PORT });
         this._peer.on('open', this._connectToPeers.bind(this));
@@ -56,7 +57,6 @@
                 this._connections[peer].send(data);
             }
         }
-        //this.onmessage(null, { author: window.user.id, body: data });
     };
 
     ChatClient.prototype._respondToConnectionRequests = function() {
@@ -70,7 +70,6 @@
 
     ChatClient.prototype._prepareConnection = function(connection) {
         var self = this;
-        //connection.on('open', function() {});
         connection.on('data', function(data) {
             if (typeof self.onmessage === 'function') {
                 self.onmessage(data);
