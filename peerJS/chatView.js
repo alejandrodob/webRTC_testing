@@ -3,7 +3,6 @@ function ChatView(model, elements) {
     this._elements = elements;
 
     this.sendButtonClicked = new Event(this);
-    this.connectButtonClicked = new Event(this);
 
     var self = this;
 
@@ -19,9 +18,6 @@ function ChatView(model, elements) {
     this._elements.sendButton.click(function() {
         self.sendButtonClicked.notify();
     });
-    this._elements.connectButton.click(function() {
-        self.connectButtonClicked.notify();
-    });
 
 }
 
@@ -29,6 +25,10 @@ ChatView.prototype = {
     show : function() {
         this.rebuildConversation();
         this.rebuildOnlineUsers();
+    },
+
+    clearTextInput : function() {
+        this._elements.message.val('');
     },
 
     rebuildConversation : function() {

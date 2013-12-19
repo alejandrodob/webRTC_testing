@@ -11,8 +11,8 @@
         this._connections = {};
     };
 
-    ChatClient.prototype.connect = function(name) {
-        this._peer = new Peer(name, { host: HOST, port: PORT });
+    ChatClient.prototype.connect = function() {
+        this._peer = new Peer(this._user_id, { host: HOST, port: PORT });
         this._peer.on('open', this._connectToPeers.bind(this));
         console.log('connectao')
         console.log(this._peer.id)

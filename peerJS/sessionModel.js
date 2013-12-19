@@ -24,4 +24,4 @@ var sessionModel = function() {
     };
 
     return self;
-}()
+}

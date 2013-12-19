@@ -8,11 +8,7 @@ function ChatController(model, view, client) {
     //subscribe to view events
     this._view.sendButtonClicked.subscribe(function() {
         self.addMessage(true);
-    });
-
-    //only for testing GUI--to be removed after that is done
-    this._view.connectButtonClicked.subscribe(function() {
-        self._client.connect(self._view._elements.name.val());
+        self._view.clearTextInput();
     });
 
     //define client callbacks
@@ -57,9 +53,9 @@ ChatController.prototype = {
         var self = this;
         self._model.removeUser(user);
     },
-    //this will need to be re-written after user ID definition
+
     wrapMessage : function(message) {
-        return { author : this._client._peer.id, body : message };
+        return { author : this._client._user_id, body : message };
     }
 
 };

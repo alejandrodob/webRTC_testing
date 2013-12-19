@@ -6,8 +6,9 @@ $(function () {
             'message' : $('#message'),
             'sendButton' : $('#sendBtn')
         });
-    var client = new ChatClient();
+    var session = sessionModel();
+    var client = new ChatClient(session);
     var controller = new ChatController(model, view, client);
-    
+    client.connect();
     view.show();
 });
